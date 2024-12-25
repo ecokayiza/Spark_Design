@@ -24,15 +24,16 @@ zhipu_api_key="6328b91e5a03d4284108b0f6065f936e.qa0IS6bGvUmeRp8f"
 os.environ["ZHIPUAI_API_KEY"] = zhipu_api_key
 
 
+
 client = ZhipuAI(api_key=zhipu_api_key) 
 
 file_01 = client.files.create(file=Path("design/result/llmdata/year_landings_addr.csv"), purpose="file-extract")
 content_01 = json.loads(client.files.content(file_01.id).content)["content"]
+client.files.delete(file_id=file_01.id)
 
 file_02 = client.files.create(file=Path("design/result/llmdata/year_season_typhoon.csv"), purpose="file-extract")
 content_02 = json.loads(client.files.content(file_02.id).content)["content"]
-
-
+client.files.delete(file_id=file_02.id)
 
 user_input = st.text_input(label='user input:',value="生成台风分析报告")
 if st.button('生成'):
