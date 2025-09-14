@@ -1,5 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import os
+from pathlib import Path
 
 
 st.set_page_config(layout="wide")
@@ -9,7 +11,16 @@ st.markdown(">欢迎来到台风分析系统。请选择左侧的页面查看具
 
 # 数据集说明
 st.subheader("数据集说明")
-st.image("design/assets/dataset_cover.png")
+# 使用绝对路径或相对于脚本文件的路径
+script_dir = Path(__file__).parent
+image_path = script_dir / "assets" / "dataset_cover.png"
+
+# 检查文件是否存在
+if image_path.exists():
+    st.image(str(image_path))
+else:
+    st.error(f"图片文件未找到: {image_path}")
+    st.info("请确认 assets/dataset_cover.png 文件存在")
 
 st.markdown("**RSMC 最佳轨迹数据集**")
 st.markdown("该数据集包含与台风相关的天气信息。台风是在北半球形成的热带气旋。")
@@ -18,38 +29,62 @@ import pandas as pd
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("typhoon_data.csv")
-    return df
+    # 尝试多个可能的路径
+    possible_paths = [
+        "typhoon_data.csv",
+        "../typhoon_data.csv", 
+        "data/typhoon_data.csv",
+        str(script_dir / "typhoon_data.csv"),
+        str(script_dir.parent / "typhoon_data.csv")
+    ]
+    
+    for path in possible_paths:
+        try:
+            if Path(path).exists():
+                df = pd.read_csv(path)
+                st.success(f"数据文件加载成功: {path}")
+                return df
+        except Exception as e:
+            continue
+    
+    st.error("未找到 typhoon_data.csv 文件")
+    st.info("请确认数据文件存在于以下任一位置:")
+    for path in possible_paths:
+        st.write(f"- {path}")
+    return None
+
+# 加载数据
 df = load_data()
 
-df = pd.read_csv("typhoon_data.csv")
-# 显示数据集的前几行
-st.subheader("数据集预览")
-st.write(df.head())
+if df is not None:
+    # 显示数据集的前几行
+    st.subheader("数据集预览")
+    st.write(df.head())
 
-# 显示数据集样本数和台风编号和年代范围
-st.subheader("数据集样本数和台风编号和年代范围")
-st.markdown(f"**数据集包含**: {df.shape[0]} 条记录")
-st.markdown(f"**台风编号范围**: {df['International number ID'].min()} - {df['International number ID'].max()}")
-st.markdown(f"**年代范围**: {df['year'].min()} - {df['year'].max()}")
+    # 显示数据集样本数和台风编号和年代范围
+    st.subheader("数据集样本数和台风编号和年代范围")
+    st.markdown(f"**数据集包含**: {df.shape[0]} 条记录")
+    st.markdown(f"**台风编号范围**: {df['International number ID'].min()} - {df['International number ID'].max()}")
+    st.markdown(f"**年代范围**: {df['year'].min()} - {df['year'].max()}")
 
+    # 按年份统计台风数量（以台风编号为准）
+    typhoon_counts = df.drop_duplicates(subset='International number ID')['year'].value_counts().sort_index()
 
-# 按年份统计台风数量（以台风编号为准）
-typhoon_counts = df.drop_duplicates(subset='International number ID')['year'].value_counts().sort_index()
+    # 绘制台风数量和年份的关系图
+    fig, ax = plt.subplots()
+    ax.plot(typhoon_counts.index, typhoon_counts.values, marker='o')
+    ax.set_title('Number of Typhoons per Year')
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Typhoons')
+    fig.set_size_inches(8, 5)
+    # 显示图表
+    st.pyplot(fig)
 
-# 绘制台风数量和年份的关系图
-fig, ax = plt.subplots()
-ax.plot(typhoon_counts.index, typhoon_counts.values, marker='o')
-ax.set_title('Number of Typhoons per Year')
-ax.set_xlabel('Year')
-ax.set_ylabel('Typhoons')
-fig.set_size_inches(8, 5)
-# 显示图表
-st.pyplot(fig)
-
-# 显示数据集的描述性统计信息
-st.subheader("数据集描述性统计信息")
-st.write(df.describe())
+    # 显示数据集的描述性统计信息
+    st.subheader("数据集描述性统计信息")
+    st.write(df.describe())
+else:
+    st.warning("由于数据文件缺失，无法显示数据统计信息。请上传或提供 typhoon_data.csv 文件。")
 
 # 显示数据集列信息和说明
 st.subheader("数据集列信息和说明")

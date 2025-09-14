@@ -1,0 +1,10 @@
+{
+  "deepseek_api_key": "sk-d242662a72ff4e81b89e62bf9cbd38eb",
+  "_comment": "将 YOUR_DEEPSEEK_API_KEY_HERE 替换为您的实际 DeepSeek API 密钥",
+  "_instructions": [
+    "1. 访问 https://platform.deepseek.com/ 获取 API 密钥",
+    "2. 将上面的 YOUR_DEEPSEEK_API_KEY_HERE 替换为您的实际密钥",
+    "3. 保存此文件",
+    "4. 重新启动应用"
+  ]
+}
