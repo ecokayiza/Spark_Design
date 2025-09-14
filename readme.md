@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-nothing special
-=======
 ### data:
 1. International number ID
 类型：整数
